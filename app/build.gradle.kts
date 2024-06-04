@@ -1,18 +1,23 @@
 plugins {
-    alias(libs.plugins.android.application)
-    alias(libs.plugins.jetbrains.kotlin.android)
+    with(libs.plugins) {
+        alias(android.application)
+        alias(jetbrains.kotlin.android)
+        alias(hilt.androidPlugin)
+        id("kotlin-kapt")
+    }
 }
 
 android {
     namespace = "com.crxapplications.cardform"
-    compileSdk = 34
+    compileSdk = rootProject.extra["compileSdk"] as Int
 
     defaultConfig {
         applicationId = "com.crxapplications.cardform"
-        minSdk = 24
-        targetSdk = 34
+        minSdk = rootProject.extra["minSdk"] as Int
+        targetSdk = rootProject.extra["targetSdk"] as Int
+
         versionCode = 1
-        versionName = "1.0"
+        versionName = "1.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -30,15 +35,18 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = JavaVersion.VERSION_17.toString()
     }
+
     buildFeatures {
         compose = true
+        buildConfig = true
     }
+
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.1"
     }
@@ -50,20 +58,30 @@ android {
 }
 
 dependencies {
+    with(libs) {
+        implementation(androidx.core.ktx)
+        implementation(androidx.lifecycle.runtime.ktx)
+        implementation(androidx.activity.compose)
+        implementation(platform(androidx.compose.bom))
+        implementation(androidx.ui)
+        implementation(androidx.ui.graphics)
+        implementation(androidx.ui.tooling.preview)
+        implementation(androidx.material3)
 
-    implementation(libs.androidx.core.ktx)
-    implementation(libs.androidx.lifecycle.runtime.ktx)
-    implementation(libs.androidx.activity.compose)
-    implementation(platform(libs.androidx.compose.bom))
-    implementation(libs.androidx.ui)
-    implementation(libs.androidx.ui.graphics)
-    implementation(libs.androidx.ui.tooling.preview)
-    implementation(libs.androidx.material3)
-    testImplementation(libs.junit)
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
-    androidTestImplementation(platform(libs.androidx.compose.bom))
-    androidTestImplementation(libs.androidx.ui.test.junit4)
-    debugImplementation(libs.androidx.ui.tooling)
-    debugImplementation(libs.androidx.ui.test.manifest)
+        implementation(android.hiltNavigation)
+        implementation(hilt.android)
+        kapt(hilt.compiler)
+
+        testImplementation(junit)
+        androidTestImplementation(androidx.junit)
+        androidTestImplementation(androidx.espresso.core)
+        androidTestImplementation(platform(androidx.compose.bom))
+        androidTestImplementation(androidx.ui.test.junit4)
+        debugImplementation(androidx.ui.tooling)
+        debugImplementation(androidx.ui.test.manifest)
+    }
+}
+
+kapt {
+    correctErrorTypes = true
 }

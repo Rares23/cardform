@@ -1,3 +1,10 @@
 <resources>
-    <string name="app_name">CardForm</string>
+    <string name="app_name">Card Form</string>
+    <string name="card_number_input_label">Card Number</string>
+    <string name="card_expiration_input_label">Expiry Date</string>
+    <string name="card_holder_input_label">Card Holder\'s Name</string>
+    <string name="card_cvv_input_label">CVV/CVC</string>
+    <string name="card_number_placeholder">XXXX XXXX XXXX XXXX</string>
+    <string name="card_expiration_placeholder">MM/YY</string>
+    <string name="card_holder_placeholder">John Doe</string>
 </resources>

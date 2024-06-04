@@ -1,0 +1,320 @@
+package com.crxapplications.cardform.ui.flows.cardform.components
+
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.min
+import androidx.compose.ui.zIndex
+import com.crxapplications.cardform.R
+import com.crxapplications.cardform.ui.core.components.SliceShape
+import com.crxapplications.cardform.ui.flows.cardform.viewmodels.CardType
+import com.crxapplications.cardform.ui.theme.CardFormTheme
+
+val cardWidthSize = 320.dp
+val cardHeightSize = 200.dp
+
+@Composable
+fun CardComponent(
+    modifier: Modifier = Modifier,
+    cardNumber: String = "",
+    cardHolder: String = "",
+    expirationDate: String = "",
+    cvv: String = "",
+    cardType: CardType = CardType.UNKNOWN,
+    showBackSide: Boolean = false,
+) {
+
+    var rotated by remember { mutableStateOf(showBackSide) }
+
+    val rotationFront by animateFloatAsState(
+        targetValue = if (rotated) 180f else 0f,
+        animationSpec = tween(500), label = "rotationFront"
+    )
+
+    val rotationBack by animateFloatAsState(
+        targetValue = if (rotated) 0f else -180f,
+        animationSpec = tween(500), label = "rotationBack"
+    )
+
+    val zIndexFront by animateFloatAsState(
+        targetValue = if (!rotated) 10f else 0f,
+        animationSpec = tween(500),
+        label = "zIndexFront"
+    )
+    val zIndexBack by animateFloatAsState(
+        targetValue = if (rotated) 10f else 0f,
+        animationSpec = tween(500),
+        label = "zIndexBack"
+    )
+
+    LaunchedEffect(showBackSide) {
+        rotated = showBackSide
+    }
+
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .background(
+                color = Color.LightGray
+            ),
+    ) {
+        FrontCard(
+            modifier = Modifier
+                .align(Alignment.Center)
+                .zIndex(zIndexFront)
+                .graphicsLayer {
+                    rotationY = rotationFront
+                },
+            cardNumber = cardNumber,
+            cardHolder = cardHolder,
+            expirationDate = expirationDate,
+            cardType = cardType
+        )
+
+        BackCard(
+            modifier = Modifier
+                .align(Alignment.Center)
+                .zIndex(zIndexBack)
+                .graphicsLayer {
+                    rotationY = rotationBack
+                },
+            cvv = cvv,
+            cardType = cardType
+        )
+    }
+}
+
+@Composable
+fun FrontCard(
+    modifier: Modifier = Modifier,
+    cardNumber: String = "",
+    cardHolder: String = "",
+    expirationDate: String = "",
+    cardType: CardType,
+) {
+    val cardNumberColor = if (cardNumber.isEmpty()) Color.Gray else Color.White
+    val cardHolderColor = if (cardHolder.isEmpty()) Color.Gray else Color.White
+    val expirationDateColor = if (expirationDate.isEmpty()) Color.Gray else Color.White
+
+    val cardFrontImageRes: Int = when (cardType) {
+        CardType.VISA -> {
+            R.drawable.visa_card_front
+        }
+
+        CardType.UNKNOWN -> {
+            R.drawable.card_placeholder
+        }
+    }
+
+    var switchCardFace by remember { mutableStateOf(cardType != CardType.UNKNOWN) }
+
+    val clipPercentAnim by animateFloatAsState(
+        targetValue = if (switchCardFace) 1f else 0f,
+        animationSpec = tween(500), label = "clipPercentAnim"
+    )
+
+    LaunchedEffect(cardType) {
+        switchCardFace = cardType != CardType.UNKNOWN
+    }
+
+    Box(
+        modifier = modifier
+            .size(
+                width = cardWidthSize,
+                height = cardHeightSize,
+            ),
+    ) {
+        Image(
+            modifier = Modifier
+                .size(
+                    width = cardWidthSize,
+                    height = cardHeightSize,
+                ),
+            painter = painterResource(id = cardFrontImageRes),
+            contentScale = ContentScale.FillWidth,
+            contentDescription = null,
+        )
+
+        Image(
+            modifier = Modifier
+                .size(
+                    width = cardWidthSize,
+                    height = cardHeightSize,
+                )
+                .clip(
+                    SliceShape(
+                        clipPercent = clipPercentAnim,
+                    )
+                ),
+            painter = painterResource(id = R.drawable.card_placeholder),
+            contentScale = ContentScale.FillWidth,
+            contentDescription = null,
+        )
+
+        Text(
+            modifier = Modifier.align(Alignment.Center),
+            text = cardNumber.ifEmpty { stringResource(id = R.string.card_number_placeholder) }
+                .uppercase(),
+            style = MaterialTheme.typography.titleLarge.copy(
+                color = cardNumberColor,
+            ),
+        )
+
+        Text(
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(bottom = 16.dp, end = 16.dp),
+            text = expirationDate.ifEmpty { stringResource(id = R.string.card_expiration_placeholder) }
+                .uppercase(),
+            style = MaterialTheme.typography.titleSmall.copy(
+                color = expirationDateColor,
+            ),
+        )
+        Text(
+            modifier = Modifier
+                .align(Alignment.BottomStart)
+                .padding(bottom = 16.dp, start = 16.dp),
+            text = cardHolder.ifEmpty { stringResource(id = R.string.card_holder_placeholder) }
+                .uppercase(),
+            style = MaterialTheme.typography.titleSmall.copy(
+                color = cardHolderColor,
+            ),
+        )
+    }
+}
+
+@Composable
+fun BackCard(
+    modifier: Modifier = Modifier,
+    cvv: String = "",
+    cardType: CardType,
+) {
+    val cardBackImageRes: Int = when (cardType) {
+        CardType.VISA -> {
+            R.drawable.visa_card_back
+        }
+
+        CardType.UNKNOWN -> {
+            R.drawable.card_placeholder
+        }
+    }
+
+    var switchCardFace by remember { mutableStateOf(cardType != CardType.UNKNOWN) }
+
+    val clipPercentAnim by animateFloatAsState(
+        targetValue = if (switchCardFace) 1f else 0f,
+        animationSpec = tween(500), label = "clipPercentAnim"
+    )
+
+    LaunchedEffect(cardType) {
+        switchCardFace = cardType != CardType.UNKNOWN
+    }
+
+    Box(
+        modifier = modifier
+            .size(
+                width = cardWidthSize,
+                height = cardHeightSize,
+            ),
+    ) {
+        Image(
+            modifier = Modifier.size(
+                width = cardWidthSize,
+                height = cardHeightSize,
+            ),
+            painter = painterResource(id = cardBackImageRes),
+            contentScale = ContentScale.FillWidth,
+            contentDescription = null,
+        )
+
+        Image(
+            modifier = Modifier
+                .size(
+                    width = cardWidthSize,
+                    height = cardHeightSize,
+                )
+                .clip(
+                    SliceShape(
+                        clipPercent = clipPercentAnim,
+                    )
+                ),
+            painter = painterResource(id = R.drawable.card_placeholder),
+            contentScale = ContentScale.FillWidth,
+            contentDescription = null,
+        )
+
+        Text(
+            modifier = Modifier
+                .align(Alignment.CenterEnd)
+                .padding(end = 16.dp)
+                .background(Color.White)
+                .padding(horizontal = 12.dp, vertical = 4.dp),
+            text = cvv.ifEmpty { "   " }.uppercase(),
+            maxLines = 1,
+            minLines = 1,
+            style = MaterialTheme.typography.titleMedium.copy(
+                color = Color.Black,
+            ),
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun CardFormEmptyScreenPreview() {
+    CardFormTheme {
+        CardComponent()
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun CardFormFullDataScreenPreview() {
+    CardFormTheme {
+        CardComponent(
+            cardNumber = "1234 1234 1234 1234",
+            cardHolder = "John Doe",
+            expirationDate = "12/23",
+            cvv = "123",
+            cardType = CardType.VISA,
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun CardFormFullDataBackScreenPreview() {
+    CardFormTheme {
+        CardComponent(
+            cardNumber = "1234 1234 1234 1234",
+            cardHolder = "John Doe",
+            expirationDate = "12/23",
+            cvv = "123",
+            showBackSide = true,
+            cardType = CardType.VISA,
+        )
+    }
+}

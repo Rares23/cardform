@@ -4,7 +4,10 @@
     <string name="card_expiration_input_label">Expiry Date</string>
     <string name="card_holder_input_label">Card Holder\'s Name</string>
     <string name="card_cvv_input_label">CVV/CVC</string>
-    <string name="card_number_placeholder">XXXX XXXX XXXX XXXX</string>
-    <string name="card_expiration_placeholder">MM/YY</string>
+    <string name="card_number_placeholder">XXXXXXXXXXXXXXXX</string>
+    <string name="card_expiration_placeholder">MMYY</string>
     <string name="card_holder_placeholder">John Doe</string>
+    <string name="card_form_submit_button">Done</string>
+    <string name="card_form_next_button">Next</string>
+    <string name="card_form_back_button">Back</string>
 </resources>

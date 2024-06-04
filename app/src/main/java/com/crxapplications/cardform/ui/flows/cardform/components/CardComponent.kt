@@ -78,7 +78,9 @@ fun CardComponent(
         modifier = modifier
             .fillMaxSize()
             .background(
-                color = Color.LightGray
+                color = Color.LightGray.copy(
+                    alpha = 0.25f
+                )
             ),
     ) {
         FrontCard(
@@ -119,16 +121,6 @@ fun FrontCard(
     val cardHolderColor = if (cardHolder.isEmpty()) Color.Gray else Color.White
     val expirationDateColor = if (expirationDate.isEmpty()) Color.Gray else Color.White
 
-    val cardFrontImageRes: Int = when (cardType) {
-        CardType.VISA -> {
-            R.drawable.visa_card_front
-        }
-
-        CardType.UNKNOWN -> {
-            R.drawable.card_placeholder
-        }
-    }
-
     var switchCardFace by remember { mutableStateOf(cardType != CardType.UNKNOWN) }
 
     val clipPercentAnim by animateFloatAsState(
@@ -153,7 +145,7 @@ fun FrontCard(
                     width = cardWidthSize,
                     height = cardHeightSize,
                 ),
-            painter = painterResource(id = cardFrontImageRes),
+            painter = painterResource(id = cardType.cardFrontImageRes()),
             contentScale = ContentScale.FillWidth,
             contentDescription = null,
         )
@@ -177,7 +169,7 @@ fun FrontCard(
         Text(
             modifier = Modifier.align(Alignment.Center),
             text = cardNumber.ifEmpty { stringResource(id = R.string.card_number_placeholder) }
-                .uppercase(),
+                .uppercase().chunked(4).joinToString(" "),
             style = MaterialTheme.typography.titleLarge.copy(
                 color = cardNumberColor,
             ),
@@ -188,7 +180,7 @@ fun FrontCard(
                 .align(Alignment.BottomEnd)
                 .padding(bottom = 16.dp, end = 16.dp),
             text = expirationDate.ifEmpty { stringResource(id = R.string.card_expiration_placeholder) }
-                .uppercase(),
+                .uppercase().chunked(2).joinToString("/"),
             style = MaterialTheme.typography.titleSmall.copy(
                 color = expirationDateColor,
             ),
@@ -212,15 +204,6 @@ fun BackCard(
     cvv: String = "",
     cardType: CardType,
 ) {
-    val cardBackImageRes: Int = when (cardType) {
-        CardType.VISA -> {
-            R.drawable.visa_card_back
-        }
-
-        CardType.UNKNOWN -> {
-            R.drawable.card_placeholder
-        }
-    }
 
     var switchCardFace by remember { mutableStateOf(cardType != CardType.UNKNOWN) }
 
@@ -245,7 +228,7 @@ fun BackCard(
                 width = cardWidthSize,
                 height = cardHeightSize,
             ),
-            painter = painterResource(id = cardBackImageRes),
+            painter = painterResource(id = cardType.cardBackImageRes()),
             contentScale = ContentScale.FillWidth,
             contentDescription = null,
         )

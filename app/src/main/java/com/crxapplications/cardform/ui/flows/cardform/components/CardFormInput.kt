@@ -9,13 +9,16 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.input.OffsetMapping
 import androidx.compose.ui.text.input.TransformedText
 import androidx.compose.ui.unit.dp
+import com.crxapplications.cardform.ui.core.utils.UiText
 import com.crxapplications.cardform.ui.theme.disabled
 
 @Composable
@@ -29,7 +32,16 @@ fun CardFormInput(
     focusRequester: FocusRequester,
     onValueChange: (String) -> Unit,
     visualTransformation: ((AnnotatedString) -> TransformedText)? = null,
+    error: UiText? = null,
 ) {
+    val context = LocalContext.current
+
+    val textColor = when {
+        error != null -> MaterialTheme.colorScheme.error
+        isFocused -> MaterialTheme.colorScheme.onBackground
+        else -> MaterialTheme.colorScheme.disabled
+    }
+
     Column(
         modifier = modifier.padding(
             vertical = 16.dp,
@@ -37,7 +49,7 @@ fun CardFormInput(
     ) {
         Text(
             text = label.uppercase(), style = MaterialTheme.typography.bodyLarge.copy(
-                color = if (isFocused) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.disabled
+                color = textColor
             )
         )
         Spacer(modifier = Modifier.height(8.dp))
@@ -58,6 +70,12 @@ fun CardFormInput(
                     onValueChange(it)
                 }
             },
+        )
+        Text(
+            text = error?.asString(context) ?: "",
+            style = MaterialTheme.typography.bodySmall.copy(
+                color = MaterialTheme.colorScheme.error
+            )
         )
     }
 }

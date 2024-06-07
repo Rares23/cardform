@@ -30,10 +30,9 @@ fun CardFormScreen(
     val context = LocalContext.current
     LaunchedEffect(state.message) {
         state.message?.let {
-            Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, it.asString(context), Toast.LENGTH_SHORT).show()
             actions.resetMessage()
         }
-
     }
 
     BaseScaffold {
@@ -46,14 +45,13 @@ fun CardFormScreen(
                 modifier = Modifier.weight(1f),
                 cardType = state.cardType,
                 showBackSide = state.showBackSide,
-                cardNumber = state.cardNumber,
-                cardHolder = state.cardHolder,
-                expirationDate = state.expirationDate,
-                cvv = state.cvv,
+                cardNumber = state.cardNumber.value,
+                cardHolder = state.cardHolder.value,
+                expirationDate = state.expirationDate.value,
+                cvv = state.cvv.value,
             )
 
             CardFormComponent(
-                canSubmit = state.canSubmit,
                 submit = actions::submit,
                 cardNumber = state.cardNumber,
                 onCardNumberChange = actions::onCardNumberChanged,

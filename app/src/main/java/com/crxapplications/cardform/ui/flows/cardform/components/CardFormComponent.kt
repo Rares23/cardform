@@ -40,21 +40,21 @@ import androidx.compose.ui.unit.dp
 import com.crxapplications.cardform.R
 import com.crxapplications.cardform.ui.core.utils.cardExpiryTransform
 import com.crxapplications.cardform.ui.core.utils.cardNumberTransform
+import com.crxapplications.cardform.ui.flows.cardform.viewmodels.CardInputData
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun CardFormComponent(
-    cardNumber: String,
+    cardNumber: CardInputData,
     onCardNumberChange: (String) -> Unit,
-    cardExpiration: String,
+    cardExpiration: CardInputData,
     onCardExpirationChange: (String) -> Unit,
-    cardCvv: String,
+    cardCvv: CardInputData,
     onCardCvvChange: (String) -> Unit,
-    cardHolder: String,
+    cardHolder: CardInputData,
     onCardHolderChange: (String) -> Unit,
     onSwitchCard: (Boolean) -> Unit,
-    canSubmit: Boolean,
     submit: () -> Unit,
 ) {
     val cardNumberFocusRequester = remember { FocusRequester() }
@@ -66,6 +66,8 @@ fun CardFormComponent(
     val pagerState = rememberPagerState(pageCount = {
         4
     })
+
+    val lastPage = pagerState.currentPage == pagerState.pageCount - 1
 
     var showBack by remember { mutableStateOf(false) }
 
@@ -107,7 +109,7 @@ fun CardFormComponent(
                     CardFormInput(
                         modifier = Modifier.width(IntrinsicSize.Max),
                         label = stringResource(id = R.string.card_number_input_label),
-                        value = cardNumber,
+                        value = cardNumber.value,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         maxLength = 16,
                         onValueChange = onCardNumberChange,
@@ -115,7 +117,8 @@ fun CardFormComponent(
                         focusRequester = cardNumberFocusRequester,
                         visualTransformation = {
                             cardNumberTransform(it.text)
-                        }
+                        },
+                        error = cardNumber.error,
                     )
                 }
 
@@ -123,7 +126,7 @@ fun CardFormComponent(
                     CardFormInput(
                         modifier = Modifier.width(IntrinsicSize.Max),
                         label = stringResource(id = R.string.card_expiration_input_label),
-                        value = cardExpiration,
+                        value = cardExpiration.value,
                         maxLength = 4,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         onValueChange = onCardExpirationChange,
@@ -131,7 +134,8 @@ fun CardFormComponent(
                         focusRequester = cardExpirationFocusRequester,
                         visualTransformation = {
                             cardExpiryTransform(it.text)
-                        }
+                        },
+                        error = cardExpiration.error,
                     )
                 }
 
@@ -139,12 +143,13 @@ fun CardFormComponent(
                     CardFormInput(
                         modifier = Modifier.width(IntrinsicSize.Max),
                         label = stringResource(id = R.string.card_cvv_input_label),
-                        value = cardCvv,
+                        value = cardCvv.value,
                         maxLength = 3,
                         isFocused = pagerState.currentPage == 2,
                         focusRequester = cardCvvFocusRequester,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        onValueChange = onCardCvvChange
+                        onValueChange = onCardCvvChange,
+                        error = cardCvv.error,
                     )
                 }
 
@@ -152,12 +157,13 @@ fun CardFormComponent(
                     CardFormInput(
                         modifier = Modifier.width(IntrinsicSize.Max),
                         label = stringResource(id = R.string.card_holder_input_label),
-                        value = cardHolder,
+                        value = cardHolder.value,
                         maxLength = 20,
                         isFocused = pagerState.currentPage == 3,
                         focusRequester = cardHolderFocusRequester,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
-                        onValueChange = onCardHolderChange
+                        onValueChange = onCardHolderChange,
+                        error = cardHolder.error,
                     )
                 }
             }
@@ -187,14 +193,13 @@ fun CardFormComponent(
                     }
                 )
             }
-
             CardFormButton(
                 modifier = Modifier.weight(weight = 0.5f, fill = true),
-                label = if (canSubmit) stringResource(id = R.string.card_form_submit_button) else stringResource(
+                label = if (lastPage) stringResource(id = R.string.card_form_submit_button) else stringResource(
                     id = R.string.card_form_next_button
                 ),
                 onPress = {
-                    if (canSubmit) {
+                    if (lastPage) {
                         submit()
                     } else {
                         scope.launch {

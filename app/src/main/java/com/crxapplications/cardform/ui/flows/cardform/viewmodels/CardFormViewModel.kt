@@ -6,6 +6,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import com.crxapplications.cardform.R
+import com.crxapplications.cardform.ui.core.utils.UiText
+import com.crxapplications.cardform.ui.flows.cardform.validators.CardValidator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.util.Locale
 import javax.inject.Inject
@@ -39,14 +41,20 @@ enum class CardType {
 }
 
 data class CardFormState(
-    val cardNumber: String = "",
-    val cardHolder: String = "",
-    val expirationDate: String = "",
-    val cvv: String = "",
+    val cardNumber: CardInputData = CardInputData(),
+    val cardHolder: CardInputData = CardInputData(),
+    val expirationDate: CardInputData = CardInputData(),
+    val cvv: CardInputData = CardInputData(),
     val cardType: CardType = CardType.UNKNOWN,
     val showBackSide: Boolean = false,
     val canSubmit: Boolean = false,
-    val message: String? = null,
+    val validations: HashMap<String, String> = hashMapOf(),
+    val message: UiText? = null,
+)
+
+data class CardInputData(
+    val value: String = "",
+    val error: UiText? = null,
 )
 
 interface CardFormActions {
@@ -62,48 +70,58 @@ interface CardFormActions {
 }
 
 @HiltViewModel
-class CardFormViewModel @Inject constructor() : ViewModel(), CardFormActions {
+class CardFormViewModel @Inject constructor(
+    private val cardValidator: CardValidator,
+) : ViewModel(), CardFormActions {
     var state by mutableStateOf(CardFormState())
         private set
 
     override fun onCardNumberChanged(cardNumber: String) {
+        val tmpCardNumber = cardNumber.filter { it.isDigit() }
+
         state = state.copy(
-            cardNumber = cardNumber.filter { it.isDigit() },
-            cardType = CardType.from(cardNumber),
+            cardNumber = state.cardNumber.copy(
+                value = tmpCardNumber,
+                error = cardValidator.validateCardNumber(tmpCardNumber)
+            ),
+            cardType = CardType.from(tmpCardNumber),
         )
+
         checkCanSubmit()
     }
 
     override fun onCardHolderChanged(cardHolder: String) {
-        state = state.copy(cardHolder = cardHolder.filter { it.isLetter() || it.isWhitespace() }
-            .uppercase())
+        val tmpCardHolder = cardHolder.filter { it.isLetter() || it.isWhitespace() }.uppercase()
+        state = state.copy(
+            cardHolder = state.cardHolder.copy(
+                value = tmpCardHolder,
+                error = cardValidator.validateCardHolder(tmpCardHolder)
+            )
+        )
+
         checkCanSubmit()
     }
 
     override fun onExpirationDateChanged(expirationDate: String) {
-        val now = Calendar.getInstance()
-        val currentYear = now.get(Calendar.YEAR) % 100
-        val currentMonth = now.get(Calendar.MONTH) + 1
+        val date = expirationDate.filter { it.isDigit() }
 
-        var date = expirationDate.filter { it.isDigit() }
-        val month = if (date.length >= 2) Integer.parseInt(date.take(2)) else 0
-        if (month > 12) {
-            date = "12"
-        }
-
-        val year = if (date.length >= 4) Integer.parseInt(date.takeLast(2)) else 0
-
-        if (date.length >= 4 && (year < currentYear || (year == currentYear && month < currentMonth))) {
-            date = "${String.format("%02d", currentMonth)}${String.format("%02d", currentYear)}"
-        }
-
-
-        state = state.copy(expirationDate = date)
+        state = state.copy(
+            expirationDate = state.expirationDate.copy(
+                value = date,
+                error = cardValidator.validateExpirationDate(date)
+            )
+        )
         checkCanSubmit()
     }
 
     override fun onCvvChanged(cvv: String) {
-        state = state.copy(cvv = cvv.filter { it.isDigit() })
+        val tmpCvv = cvv.filter { it.isDigit() }
+        state = state.copy(
+            cvv = state.cvv.copy(
+                value = tmpCvv,
+                error = cardValidator.validateCvv(tmpCvv)
+            )
+        )
         checkCanSubmit()
     }
 
@@ -121,16 +139,31 @@ class CardFormViewModel @Inject constructor() : ViewModel(), CardFormActions {
 
     override fun submit() {
         state = state.copy(
-            message = "Submit Pressed!"
+            cardNumber = state.cardNumber.copy(
+                error = cardValidator.validateCardNumber(state.cardNumber.value)
+            ),
+            cardHolder = state.cardHolder.copy(
+                error = cardValidator.validateCardHolder(state.cardHolder.value)
+            ),
+            expirationDate = state.expirationDate.copy(
+                error = cardValidator.validateExpirationDate(state.expirationDate.value)
+            ),
+            cvv = state.cvv.copy(
+                error = cardValidator.validateCvv(state.cvv.value)
+            ),
+        )
+
+        state = state.copy(
+            message = if (checkCanSubmit()) UiText.ResourceString(R.string.submit_success_message) else UiText.ResourceString(
+                R.string.card_validation_message
+            )
         )
     }
 
-    private fun checkCanSubmit() {
-        state = state.copy(
-            canSubmit = state.cardNumber.length == 16 &&
-                    state.cardHolder.isNotBlank() &&
-                    state.expirationDate.length == 4 &&
-                    state.cvv.length == 3
-        )
+    private fun checkCanSubmit(): Boolean {
+        return state.cardNumber.error == null &&
+                state.cardHolder.error == null &&
+                state.expirationDate.error == null &&
+                state.cvv.error == null
     }
 }

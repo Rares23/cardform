@@ -10,4 +10,10 @@
     <string name="card_form_submit_button">Done</string>
     <string name="card_form_next_button">Next</string>
     <string name="card_form_back_button">Back</string>
+    <string name="submit_success_message">Card saved successfully</string>
+
+    <!--  Validations  -->
+    <string name="input_invalid_message">Input is not valid</string>
+    <string name="card_expiration_date_is_expired_message">Card is expired</string>
+    <string name="card_validation_message">Validation error</string>
 </resources>

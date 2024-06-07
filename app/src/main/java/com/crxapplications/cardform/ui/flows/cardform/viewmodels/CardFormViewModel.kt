@@ -75,7 +75,8 @@ class CardFormViewModel @Inject constructor() : ViewModel(), CardFormActions {
     }
 
     override fun onCardHolderChanged(cardHolder: String) {
-        state = state.copy(cardHolder = cardHolder.filter { it.isLetter() || it.isWhitespace() }.uppercase())
+        state = state.copy(cardHolder = cardHolder.filter { it.isLetter() || it.isWhitespace() }
+            .uppercase())
         checkCanSubmit()
     }
 
@@ -83,8 +84,6 @@ class CardFormViewModel @Inject constructor() : ViewModel(), CardFormActions {
         val now = Calendar.getInstance()
         val currentYear = now.get(Calendar.YEAR) % 100
         val currentMonth = now.get(Calendar.MONTH) + 1
-
-        println("currentYear: $currentYear")
 
         var date = expirationDate.filter { it.isDigit() }
         val month = if (date.length >= 2) Integer.parseInt(date.take(2)) else 0
@@ -94,7 +93,7 @@ class CardFormViewModel @Inject constructor() : ViewModel(), CardFormActions {
 
         val year = if (date.length >= 4) Integer.parseInt(date.takeLast(2)) else 0
 
-        if(date.length >= 4 && (year < currentYear || (year == currentYear && month < currentMonth))) {
+        if (date.length >= 4 && (year < currentYear || (year == currentYear && month < currentMonth))) {
             date = "${String.format("%02d", currentMonth)}${String.format("%02d", currentYear)}"
         }
 
@@ -104,7 +103,7 @@ class CardFormViewModel @Inject constructor() : ViewModel(), CardFormActions {
     }
 
     override fun onCvvChanged(cvv: String) {
-        state = state.copy(cvv = cvv.filter { it.isDigit() },)
+        state = state.copy(cvv = cvv.filter { it.isDigit() })
         checkCanSubmit()
     }
 
@@ -121,7 +120,6 @@ class CardFormViewModel @Inject constructor() : ViewModel(), CardFormActions {
     }
 
     override fun submit() {
-        // To be continued
         state = state.copy(
             message = "Submit Pressed!"
         )

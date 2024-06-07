@@ -1,15 +1,20 @@
 package com.crxapplications.cardform.ui.flows.cardform.components
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -18,12 +23,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.input.KeyboardType
@@ -161,11 +168,13 @@ fun CardFormComponent(
                 .fillMaxWidth()
                 .background(
                     color = MaterialTheme.colorScheme.primary
-                )
+                ),
+            horizontalArrangement = Arrangement.SpaceEvenly
         ) {
             AnimatedVisibility(visible = showBack) {
                 CardFormButton(
-                    modifier = Modifier.weight(0.5f),
+                    modifier = Modifier
+                        .fillMaxWidth(0.5f),
                     label = stringResource(id = R.string.card_form_back_button),
                     onPress = {
                         scope.launch {
@@ -180,7 +189,7 @@ fun CardFormComponent(
             }
 
             CardFormButton(
-                modifier = Modifier.weight(if(showBack) 0.5f else 1f),
+                modifier = Modifier.weight(weight = 0.5f, fill = true),
                 label = if (canSubmit) stringResource(id = R.string.card_form_submit_button) else stringResource(
                     id = R.string.card_form_next_button
                 ),

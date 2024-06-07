@@ -1,5 +1,12 @@
 package com.crxapplications.cardform.ui.flows.cardform.components
 
+import androidx.compose.animation.core.EaseInBounce
+import androidx.compose.animation.core.EaseInElastic
+import androidx.compose.animation.core.EaseInOutBounce
+import androidx.compose.animation.core.EaseInOutElastic
+import androidx.compose.animation.core.EaseOutBounce
+import androidx.compose.animation.core.EaseOutElastic
+import androidx.compose.animation.core.Easing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
@@ -13,6 +20,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -32,6 +40,9 @@ import com.crxapplications.cardform.R
 import com.crxapplications.cardform.ui.core.components.SliceShape
 import com.crxapplications.cardform.ui.flows.cardform.viewmodels.CardType
 import com.crxapplications.cardform.ui.theme.CardFormTheme
+import kotlin.math.PI
+import kotlin.math.pow
+import kotlin.math.sin
 
 val cardWidthSize = 320.dp
 val cardHeightSize = 200.dp
@@ -46,27 +57,41 @@ fun CardComponent(
     cardType: CardType = CardType.UNKNOWN,
     showBackSide: Boolean = false,
 ) {
-
+    val animationTime = 5000
     var rotated by remember { mutableStateOf(showBackSide) }
+
+    val easing = Easing { fraction ->
+        val c4 = (2f * PI) / 3f
+
+        return@Easing when (fraction) {
+            0f -> 0f
+            1f -> 1f
+            else -> {
+                val amplitude = 8f
+                (amplitude.pow(-10.0f * fraction) *
+                        sin((fraction * 10f - 0.75f) * c4) + 1f).toFloat()
+            }
+
+        }
+    }
 
     val rotationFront by animateFloatAsState(
         targetValue = if (rotated) 180f else 0f,
-        animationSpec = tween(500), label = "rotationFront"
+        animationSpec = tween(animationTime, easing = easing), label = "rotationFront",
     )
 
     val rotationBack by animateFloatAsState(
         targetValue = if (rotated) 0f else -180f,
-        animationSpec = tween(500), label = "rotationBack"
+        animationSpec = tween(animationTime, easing = easing), label = "rotationBack"
     )
-
     val zIndexFront by animateFloatAsState(
         targetValue = if (!rotated) 10f else 0f,
-        animationSpec = tween(500),
+        animationSpec = tween(animationTime, easing = easing),
         label = "zIndexFront"
     )
     val zIndexBack by animateFloatAsState(
         targetValue = if (rotated) 10f else 0f,
-        animationSpec = tween(500),
+        animationSpec = tween(animationTime, easing = easing),
         label = "zIndexBack"
     )
 
@@ -89,6 +114,7 @@ fun CardComponent(
                 .zIndex(zIndexFront)
                 .graphicsLayer {
                     rotationY = rotationFront
+                    cameraDistance = 40f * density
                 },
             cardNumber = cardNumber,
             cardHolder = cardHolder,
@@ -102,6 +128,7 @@ fun CardComponent(
                 .zIndex(zIndexBack)
                 .graphicsLayer {
                     rotationY = rotationBack
+                    cameraDistance = 40f * density
                 },
             cvv = cvv,
             cardType = cardType
@@ -122,14 +149,23 @@ fun FrontCard(
     val expirationDateColor = if (expirationDate.isEmpty()) Color.Gray else Color.White
 
     var switchCardFace by remember { mutableStateOf(cardType != CardType.UNKNOWN) }
+    var lastCardFace by remember { mutableStateOf(CardType.UNKNOWN) }
 
     val clipPercentAnim by animateFloatAsState(
         targetValue = if (switchCardFace) 1f else 0f,
-        animationSpec = tween(500), label = "clipPercentAnim"
+        animationSpec = tween(500), label = "clipPercentAnim",
+        finishedListener = {
+            lastCardFace = cardType
+        }
     )
+
 
     LaunchedEffect(cardType) {
         switchCardFace = cardType != CardType.UNKNOWN
+
+        if (switchCardFace) {
+            lastCardFace = cardType
+        }
     }
 
     Box(
@@ -145,7 +181,7 @@ fun FrontCard(
                     width = cardWidthSize,
                     height = cardHeightSize,
                 ),
-            painter = painterResource(id = cardType.cardFrontImageRes()),
+            painter = painterResource(id = lastCardFace.cardFrontImageRes()),
             contentScale = ContentScale.FillWidth,
             contentDescription = null,
         )

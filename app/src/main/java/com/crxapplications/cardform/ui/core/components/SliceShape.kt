@@ -9,16 +9,16 @@ import androidx.compose.ui.unit.LayoutDirection
 
 class SliceShape(
     private val clipPercent: Float = 0f, // value between 0 and 1
-    private val angle: Float = 60f,
+    private val angle: Float = 80f,
 ) : Shape {
     override fun createOutline(
         size: Size,
         layoutDirection: LayoutDirection,
         density: Density,
     ): Outline {
-       return Outline.Generic(
+        return Outline.Generic(
             Path().apply {
-                val leftTopPoint = clipPercent * size.width + angle
+                val leftTopPoint = clipPercent * (size.width + angle)
                 moveTo(leftTopPoint, 0f)
                 lineTo(size.width, 0f)
                 lineTo(size.width, size.height)

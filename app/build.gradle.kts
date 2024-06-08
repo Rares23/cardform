@@ -55,9 +55,21 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
+
+
+    testOptions {
+        unitTests {
+            testOptions.unitTests.isIncludeAndroidResources = true
+        }
+    }
+
+    tasks.withType<Test> {
+        useJUnitPlatform()
+    }
 }
 
 dependencies {
+    testImplementation("org.junit.jupiter:junit-jupiter:5.8.1")
     with(libs) {
         implementation(androidx.core.ktx)
         implementation(androidx.lifecycle.runtime.ktx)
@@ -72,11 +84,11 @@ dependencies {
         implementation(hilt.android)
         kapt(hilt.compiler)
 
-        testImplementation(junit)
-        androidTestImplementation(androidx.junit)
+        testImplementation(jupiter)
+        testRuntimeOnly(jupiter.engine)
+        testImplementation(mockk)
         androidTestImplementation(androidx.espresso.core)
         androidTestImplementation(platform(androidx.compose.bom))
-        androidTestImplementation(androidx.ui.test.junit4)
         debugImplementation(androidx.ui.tooling)
         debugImplementation(androidx.ui.test.manifest)
     }

@@ -4,8 +4,15 @@ import android.icu.util.Calendar
 import com.crxapplications.cardform.R
 import com.crxapplications.cardform.ui.core.utils.UiText
 
-class CardValidator {
-    fun validateCardNumber(cardNumber: String): UiText? {
+interface CardValidator {
+    fun validateCardNumber(cardNumber: String): UiText?
+    fun validateCardHolder(cardHolder: String): UiText?
+    fun validateExpirationDate(expirationDate: String): UiText?
+    fun validateCvv(cvv: String): UiText?
+}
+
+class CardValidatorImpl: CardValidator {
+    override fun validateCardNumber(cardNumber: String): UiText? {
         if (cardNumber.length < 16) {
             return UiText.ResourceString(R.string.input_invalid_message)
         }
@@ -13,14 +20,14 @@ class CardValidator {
         return null
     }
 
-    fun validateCardHolder(cardHolder: String): UiText? {
+    override fun validateCardHolder(cardHolder: String): UiText? {
         if (cardHolder.length < 3) {
             return UiText.ResourceString(R.string.input_invalid_message)
         }
         return null
     }
 
-    fun validateExpirationDate(expirationDate: String): UiText? {
+    override fun validateExpirationDate(expirationDate: String): UiText? {
         val now = Calendar.getInstance()
         val currentYear = now.get(Calendar.YEAR) % 100
         val currentMonth = now.get(Calendar.MONTH) + 1
@@ -45,7 +52,7 @@ class CardValidator {
         return null
     }
 
-    fun validateCvv(cvv: String): UiText? {
+    override fun validateCvv(cvv: String): UiText? {
         if (cvv.length < 3) {
             return UiText.ResourceString(R.string.input_invalid_message)
         }

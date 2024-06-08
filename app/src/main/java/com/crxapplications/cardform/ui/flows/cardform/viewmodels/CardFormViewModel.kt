@@ -47,9 +47,9 @@ data class CardFormState(
     val cvv: CardInputData = CardInputData(),
     val cardType: CardType = CardType.UNKNOWN,
     val showBackSide: Boolean = false,
-    val canSubmit: Boolean = false,
     val validations: HashMap<String, String> = hashMapOf(),
     val message: UiText? = null,
+    val submittedSuccessfully: Boolean? = null,
 )
 
 data class CardInputData(
@@ -87,7 +87,7 @@ class CardFormViewModel @Inject constructor(
             cardType = CardType.from(tmpCardNumber),
         )
 
-        checkCanSubmit()
+        isValid()
     }
 
     override fun onCardHolderChanged(cardHolder: String) {
@@ -99,7 +99,7 @@ class CardFormViewModel @Inject constructor(
             )
         )
 
-        checkCanSubmit()
+        isValid()
     }
 
     override fun onExpirationDateChanged(expirationDate: String) {
@@ -111,7 +111,7 @@ class CardFormViewModel @Inject constructor(
                 error = cardValidator.validateExpirationDate(date)
             )
         )
-        checkCanSubmit()
+        isValid()
     }
 
     override fun onCvvChanged(cvv: String) {
@@ -122,7 +122,7 @@ class CardFormViewModel @Inject constructor(
                 error = cardValidator.validateCvv(tmpCvv)
             )
         )
-        checkCanSubmit()
+        isValid()
     }
 
     override fun switchCard(switch: Boolean) {
@@ -153,14 +153,17 @@ class CardFormViewModel @Inject constructor(
             ),
         )
 
+        val isValid = isValid()
+
         state = state.copy(
-            message = if (checkCanSubmit()) UiText.ResourceString(R.string.submit_success_message) else UiText.ResourceString(
+            message = if (isValid) UiText.ResourceString(R.string.submit_success_message) else UiText.ResourceString(
                 R.string.card_validation_message
-            )
+            ),
+            submittedSuccessfully = isValid,
         )
     }
 
-    private fun checkCanSubmit(): Boolean {
+    private fun isValid(): Boolean {
         return state.cardNumber.error == null &&
                 state.cardHolder.error == null &&
                 state.expirationDate.error == null &&
